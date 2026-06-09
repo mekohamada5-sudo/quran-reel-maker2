@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Quran Reel Maker | صانع الريلز القرآنية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;900&family=Reem+Kufi:wght@400;700&family=Noto+Naskh+Arabic:wght@400;500;600;700&family=Scheherazade+New:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="logo-mark">﷽</div>
+      <div class="brand-text">
+        <h1>Quran Reel Maker</h1>
+        <span>صانع الريلز القرآنية · Created by Ahmed Wael</span>
+      </div>
+    </div>
+    <div class="topbar-meta">
+      <span class="hijri-badge" id="hijriDate">—</span>
+      <span class="api-status ok" id="apiStatus">
+        <span class="dot" id="apiDot"></span>
+        <span id="apiText">quran.com</span>
+      </span>
+      <button class="icon-btn" id="themeBtn" title="تبديل المظهر">🌓</button>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-text">
+      <span class="hero-badge">✨ أداة مجانية · API حقيقي</span>
+      <h1 class="hero-title">أنشئ ريلز <span class="grad">قرآني</span> في ثوانٍ</h1>
+      <p class="hero-sub">اختر السورة والآية والقارئ، خصص التصميم، واحصل على فيديو عمودي جاهز لنشره على تيك توك وريلز يوتيوب وشورتس</p>
+      <div class="hero-stats">
+        <div class="hs"><strong>114</strong><span>سورة كاملة</span></div>
+        <div class="hs"><strong>10+</strong><span>قراء مشهورين</span></div>
+        <div class="hs"><strong>9:16</strong><span>ريلز عمودي</span></div>
+        <div class="hs"><strong>1080p</strong><span>HD Export</span></div>
+      </div>
+    </div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <canvas id="previewCanvas" width="540" height="960"></canvas>
+          <div class="phone-bottom-bar">
+            <span class="pb-icon" title="تشغيل/إيقاف" id="pbPlay">▶</span>
+            <span class="pb-icon" title="إعادة">↺</span>
+            <span class="pb-icon" title="صوت">🔊</span>
+            <span class="pb-icon" title="إعدادات">⚙</span>
+          </div>
+        </div>
+      </div>
+      <button class="cta-btn" id="renderBtn">
+        <span class="cta-icon">⚡</span>
+        تصدير فيديو الريلز HD
+      </button>
+      <div id="renderProgress" class="render-progress hidden">
+        <div class="bar"><div class="bar-fill" id="renderBar"></div></div>
+        <span id="renderStatus">تجهيز...</span>
+      </div>
+      <a id="downloadLink" class="download-link hidden" download="quran-reel.mp4">⬇ تحميل الفيديو</a>
+    </div>
+  </div>
+</section>
+
+<!-- SIDEBAR TABS -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab active" data-tab="surah">📖 السورة والآيات</button>
+  <button class="tab" data-tab="design">🎨 التصميم</button>
+  <button class="tab" data-tab="audio">🎧 التلاوة</button>
+  <button class="tab" data-tab="tafsir">📚 التفسير</button>
+  <button class="tab" data-tab="ai">🤖 المساعد الذكي</button>
+  <button class="tab" data-tab="extras">✨ إضافات</button>
+  <button class="tab" data-tab="export">📤 التصدير</button>
+</nav>
+
+<!-- TAB: SURAH & AYAT -->
+<section class="panel" data-tab-panel="surah">
+  <div class="panel-head">
+    <h3>اختر السورة والآية</h3>
+    <span class="panel-tip">يدعم كل سور القرآن الكريم</span>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label>السورة</label>
+      <select id="surahSelect"></select>
+    </div>
+    <div class="field">
+      <label>عدد الآيات</label>
+      <div class="number-row">
+        <input type="number" id="ayahFrom" min="1" value="1" />
+        <span class="dash">—</span>
+        <input type="number" id="ayahTo" min="1" value="3" />
+      </div>
+    </div>
+  </div>
+  <div class="ayah-preview" id="ayahPreview">
+    <div class="ayah-text" id="ayahText">اختر سورة لعرض الآيات...</div>
+    <div class="ayah-meta" id="ayahMeta"></div>
+  </div>
+  <div class="quick-ayahs" id="quickAyahs"></div>
+</section>
+
+<!-- TAB: DESIGN -->
+<section class="panel hidden" data-tab-panel="design">
+  <div class="panel-head">
+    <h3>التصميم والمظهر</h3>
+    <span class="panel-tip">خلفيات، خطوط، ألوان، تأثيرات</span>
+  </div>
+
+  <div class="field">
+    <label>نسبة الإطار</label>
+    <div class="aspect-row" id="aspectRow">
+      <button class="aspect-btn active" data-aspect="9:16" data-w="540" data-h="960">
+        <div class="ar-shape" style="width:24px;height:42px"></div>
+        <span>9:16 ريلز</span>
+      </button>
+      <button class="aspect-btn" data-aspect="1:1" data-w="720" data-h="720">
+        <div class="ar-shape" style="width:36px;height:36px"></div>
+        <span>1:1 مربع</span>
+      </button>
+      <button class="aspect-btn" data-aspect="16:9" data-w="960" data-h="540">
+        <div class="ar-shape" style="width:42px;height:24px"></div>
+        <span>16:9 أفقي</span>
+      </button>
+      <button class="aspect-btn" data-aspect="4:5" data-w="540" data-h="675">
+        <div class="ar-shape" style="width:28px;height:35px"></div>
+        <span>4:5 انستقرام</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="field">
+    <label>الخلفية</label>
+    <div class="tabs-mini" id="bgTabs">
+      <button class="tm active" data-bgm="color">ألوان</button>
+      <button class="tm" data-bgm="image">صور</button>
+      <button class="tm" data-bgm="video">فيديو</button>
+      <button class="tm" data-bgm="custom">رفع</button>
+    </div>
+    <div class="chips" id="bgChips"></div>
+    <div class="custom-bg hidden" id="customBg">
+      <label class="upload-label">
+        <input type="file" id="bgUpload" accept="image/*,video/*" hidden />
+        <span class="upload-icon">📁</span>
+        <span>اضغط لرفع صورة أو فيديو من جهازك</span>
+        <span class="upload-hint">PNG/JPG/MP4 · حتى 20MB</span>
+      </label>
+      <div class="bg-preview" id="bgPreview"></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>الخط العربي</label>
+      <select id="fontSelect">
+        <option value="Amiri Quran, serif">عثماني (Amiri Quran)</option>
+        <option value="'Amiri', serif">أميري (Amiri)</option>
+        <option value="'Noto Naskh Arabic', serif">نستعليق</option>
+        <option value="'Reem Kufi', sans-serif">كوفي</option>
+        <option value="'Cairo', sans-serif">القاهرة</option>
+        <option value="'Scheherazade New', serif">شهرزاد</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>اللون الرئيسي</label>
+      <div class="color-row">
+        <input type="color" id="textColor" value="#f5d27a" />
+        <div class="color-presets">
+          <button data-c="#f5d27a" style="background:#f5d27a"></button>
+          <button data-c="#ffffff" style="background:#ffffff"></button>
+          <button data-c="#fef3c7" style="background:#fef3c7"></button>
+          <button data-c="#86efac" style="background:#86efac"></button>
+          <button data-c="#93c5fd" style="background:#93c5fd"></button>
+          <button data-c="#f0abfc" style="background:#f0abfc"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>حجم الخط <span class="muted" id="fontSizeVal">64</span>px</label>
+      <input type="range" id="fontSize" min="40" max="120" value="64" />
+    </div>
+    <div class="field">
+      <label>موضع النص</label>
+      <select id="textPos">
+        <option value="center">وسط</option>
+        <option value="top">أعلى</option>
+        <option value="bottom">أسفل</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>حركة الظهور</label>
+      <select id="animStyle">
+        <option value="fade">تلاشي</option>
+        <option value="zoom" selected>تكبير هادئ</option>
+        <option value="typewriter">كتابة</option>
+        <option value="slide">انزلاق</option>
+        <option value="glow">توهج</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>الإطار</label>
+      <select id="frameStyle">
+        <option value="none">بدون</option>
+        <option value="corners" selected>زوايا ذهبية</option>
+        <option value="border">إطار كامل</option>
+        <option value="ornate">زخرفة إسلامية</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="check-row">
+    <label class="check"><input type="checkbox" id="showTranslation" /><span>إظهار الترجمة الإنجليزية</span></label>
+    <label class="check"><input type="checkbox" id="showTafsir" /><span>إظهار التفسير المختصر</span></label>
+    <label class="check"><input type="checkbox" id="showReference" checked /><span>إظهار اسم السورة ورقم الآية</span></label>
+    <label class="check"><input type="checkbox" id="showWatermark" /><span>علامة مائية (Created by Ahmed Wael)</span></label>
+  </div>
+</section>
+
+<!-- TAB: AUDIO -->
+<section class="panel hidden" data-tab-panel="audio">
+  <div class="panel-head">
+    <h3>التلاوة والصوت</h3>
+    <span class="panel-tip">تلاوة حقيقية من قراء مشهورين</span>
+  </div>
+  <div class="field">
+    <label>القارئ</label>
+    <select id="reciterSelect">
+      <option value="Alafasy_128kbps">مشاري راشد العفاسي</option>
+      <option value="Abdul_Basit_Murattal_64kbps">عبد الباسط عبد الصمد (مرتل)</option>
+      <option value="Husary_128kbps">محمود خليل الحصري</option>
+      <option value="Husary_Mujawwad_64kbps">محمود خليل الحصري (مجود)</option>
+      <option value="Minshawy_Murattal_128kbps">محمد صديق المنشاوي</option>
+      <option value="Hudhaify_128kbps">علي الحذيفي</option>
+      <option value="Abu_Bakr_Ash-Shaatree_128kbps">أبو بكر الشاطري</option>
+      <option value="Abdullah_Basfar_192kbps">عبد الله بصفر</option>
+      <option value="Yasser_Ad-Dussary_128kbps">ياسر الدوسري</option>
+      <option value="Ahmed_ibn_Ali_al-Ajamy_128kbps_ketaballah.net">أحمد بن علي العجمي</option>
+    </select>
+  </div>
+  <div class="audio-card">
+    <div class="audio-info">
+      <div class="audio-emoji">🎧</div>
+      <div>
+        <strong>التلاوة المتزامنة</strong>
+        <p class="muted small" id="audioStatus">يتم قياس مدة كل آية تلقائياً لمزامنة الصورة مع الصوت</p>
+      </div>
+    </div>
+    <audio id="audioPreview" controls></audio>
+    <div class="audio-actions">
+      <button class="ghost-btn-sm" id="loadAudioBtn">▶ تشغيل الآن</button>
+      <button class="ghost-btn-sm" id="stopAudioBtn">⏹ إيقاف</button>
+    </div>
+  </div>
+  <div class="timing-stats" id="timingStats"></div>
+</section>
+
+<!-- TAB: TAFSIR -->
+<section class="panel hidden" data-tab-panel="tafsir">
+  <div class="panel-head">
+    <h3>تفسير الآيات</h3>
+    <span class="panel-tip">من تفسير ابن كثير والطبري والسعدي</span>
+  </div>
+  <div class="tafsir-list" id="tafsirList">
+    <div class="placeholder">اختر سورة وآيات من الخطوة الأولى لعرض التفسير</div>
+  </div>
+</section>
+
+<!-- TAB: AI ASSISTANT -->
+<section class="panel hidden" data-tab-panel="ai">
+  <div class="panel-head">
+    <h3>🤖 المساعد الإسلامي الذكي</h3>
+    <span class="panel-tip">اجب على أسئلتك الشرعية بالذكاء الاصطناعي</span>
+  </div>
+  <div class="ai-assistant">
+    <div class="ai-header">
+      <div class="ai-avatar">🕌</div>
+      <div>
+        <strong>المساعد الإسلامي</strong>
+        <p class="muted small">يستند إلى القرآن والسنة - يسأل عن الفقه والعبادات والسيرة</p>
+      </div>
+      <span class="ai-status" id="aiStatus">● جاهز</span>
+    </div>
+    <div class="ai-suggestions" id="aiSuggestions">
+      <button class="ai-sugg" data-q="ما هي أركان الإسلام الخمسة؟">أركان الإسلام</button>
+      <button class="ai-sugg" data-q="ما هي شروط الصلاة؟">شروط الصلاة</button>
+      <button class="ai-sugg" data-q="ما هو حكم صيام يوم السبت منفردا؟">حكم صيام السبت</button>
+      <button class="ai-sugg" data-q="ما هي سنن الفطرة؟">سنن الفطرة</button>
+      <button class="ai-sugg" data-q="كيف أتيقن أن توبتي مقبولة؟">قبول التوبة</button>
+      <button class="ai-sugg" data-q="ما هي آداب الدعاء؟">آداب الدعاء</button>
+      <button class="ai-sugg" data-q="ما هي السبع الموبقات؟">السبع الموبقات</button>
+      <button class="ai-sugg" data-q="ما فضل قراءة سورة الكهف يوم الجمعة؟">فضل سورة الكهف</button>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="ai-msg bot">
+        <div class="msg-avatar">🕌</div>
+        <div class="msg-content">
+          <p>السلام عليكم ورحمة الله وبركاته 👋</p>
+          <p>أنا مساعدك الإسلامي. يمكنك أن تسألني عن:</p>
+          <ul>
+            <li>📖 تفسير آيات القرآن الكريم</li>
+            <li>🕌 أحكام الفقه والعبادات</li>
+            <li>📚 الحديث الشريف ودرجاته</li>
+            <li>🌙 السيرة النبوية والتاريخ الإسلامي</li>
+            <li>🤲 الأذكار والأدعية</li>
+            <li>💎 العقيدة الإسلامية</li>
+          </ul>
+          <p class="muted small">اختر سؤالاً من الاقتراحات أو اكتب سؤالك في الأسفل</p>
+        </div>
+      </div>
+    </div>
+    <div class="ai-input-wrap">
+      <textarea id="aiInput" rows="2" placeholder="اكتب سؤالك هنا... (مثال: ما حكم قراءة القرآن للحائض؟)"></textarea>
+      <button id="aiSend" class="ai-send-btn">إرسال ✈️</button>
+    </div>
+    <p class="muted small ai-disclaimer">⚠️ إجابات استرشادية، يُرجى العودة لأهل العلم المتخصصين في المسائل الفقهية</p>
+  </div>
+</section>
+
+<!-- TAB: EXTRAS (Islamic features) -->
+<section class="panel hidden" data-tab-panel="extras">
+  <div class="panel-head">
+    <h3>إضافات إسلامية</h3>
+    <span class="panel-tip">أدوات مفيدة للمسلمين</span>
+  </div>
+
+  <div class="extras-grid">
+    <!-- Tasbih Counter -->
+    <div class="extra-card tasbih-card">
+      <div class="extra-icon">📿</div>
+      <h4>السبحة الإلكترونية</h4>
+      <p>عداد التسبيح - سبحان الله، الحمد لله، الله أكبر</p>
+      <div class="tasbih-dhikr">
+        <select id="tasbihType">
+          <option value="سبحان الله">سبحان الله</option>
+          <option value="الحمد لله">الحمد لله</option>
+          <option value="الله أكبر">الله أكبر</option>
+          <option value="لا إله إلا الله">لا إله إلا الله</option>
+          <option value="أستغفر الله">أستغفر الله</option>
+          <option value="لا حول ولا قوة إلا بالله">لا حول ولا قوة إلا بالله</option>
+        </select>
+      </div>
+      <div class="tasbih-display" id="tasbihCount">0</div>
+      <div class="tasbih-target">الهدف: <span id="tasbihTarget">33</span></div>
+      <div class="tasbih-target-row">
+        <button data-t="33">33</button>
+        <button data-t="100">100</button>
+        <button data-t="500">500</button>
+        <button data-t="1000">1000</button>
+      </div>
+      <button class="primary-btn" id="tasbihBtn">+ تسبيحة</button>
+      <button class="ghost-btn-sm" id="tasbihReset">إعادة</button>
+    </div>
+
+    <!-- Adhkar -->
+    <div class="extra-card">
+      <div class="extra-icon">🤲</div>
+      <h4>أذكار المسلم</h4>
+      <p>أذكار الصباح والمساء والنوم</p>
+      <div class="adhkar-tabs">
+        <button class="adhkar-tab active" data-a="morning">الصباح</button>
+        <button class="adhkar-tab" data-a="evening">المساء</button>
+        <button class="adhkar-tab" data-a="sleep">النوم</button>
+      </div>
+      <div class="adhkar-list" id="adhkarList"></div>
+    </div>
+
+    <!-- Qibla -->
+    <div class="extra-card">
+      <div class="extra-icon">🕋</div>
+      <h4>اتجاه القبلة</h4>
+      <p>حدد موقعك لمعرفة اتجاه القبلة</p>
+      <div class="qibla-compass" id="qiblaCompass">
+        <div class="compass-rose">
+          <span class="dir n">ش</span>
+          <span class="dir e">ق</span>
+          <span class="dir s">ج</span>
+          <span class="dir w">غ</span>
+          <div class="needle" id="qiblaNeedle">↑</div>
+        </div>
+      </div>
+      <button class="primary-btn" id="qiblaBtn">📍 تحديد موقعي</button>
+      <p class="muted small" id="qiblaInfo">اضغط الزر للسماح بالموقع</p>
+    </div>
+
+    <!-- Hijri Date -->
+    <div class="extra-card">
+      <div class="extra-icon">🌙</div>
+      <h4>التاريخ الهجري</h4>
+      <p id="hijriBig">—</p>
+      <p class="muted small" id="gregBig">—</p>
+      <div class="hijri-events" id="hijriEvents"></div>
+    </div>
+
+    <!-- 99 Names -->
+    <div class="extra-card">
+      <div class="extra-icon">✨</div>
+      <h4>أسماء الله الحسنى</h4>
+      <p>اختر اسماً للاطلاع على معناه</p>
+      <div class="names-grid" id="namesGrid"></div>
+    </div>
+
+    <!-- Random Ayah -->
+    <div class="extra-card">
+      <div class="extra-icon">🎲</div>
+      <h4>آية عشوائية</h4>
+      <p>آية جديدة في كل مرة</p>
+      <button class="primary-btn" id="randomAyahBtn">آية عشوائية</button>
+      <div class="random-ayah" id="randomAyah"></div>
+    </div>
+  </div>
+</section>
+
+<!-- TAB: EXPORT -->
+<section class="panel hidden" data-tab-panel="export">
+  <div class="panel-head">
+    <h3>تصدير ومشاركة</h3>
+    <span class="panel-tip">كابشن، وسوم، إعدادات الفيديو</span>
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label>جودة الفيديو</label>
+      <select id="videoQuality">
+        <option value="1080" selected>1080p HD</option>
+        <option value="720">720p</option>
+        <option value="540">540p (سريع)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>FPS</label>
+      <select id="videoFps">
+        <option value="30" selected>30 إطار/ث (سلس)</option>
+        <option value="24">24 إطار/ث</option>
+        <option value="60">60 إطار/ث (HD)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="export-card">
+    <h4>📝 كابشن تلقائي</h4>
+    <button class="ghost-btn-sm" id="genCaptionBtn">توليد كابشن للسوشيال ميديا</button>
+    <textarea id="captionOut" class="hidden" rows="5"></textarea>
+  </div>
+
+  <div class="export-card">
+    <h4>🏷 هاشتاقات تلقائية</h4>
+    <button class="ghost-btn-sm" id="genTagsBtn">توليد الوسوم</button>
+    <div id="tagsOut" class="tags"></div>
+  </div>
+
+  <div class="export-card">
+    <h4>📊 جاهزية المشروع</h4>
+    <div class="readiness">
+      <div class="readiness-score" id="readinessScore">0%</div>
+      <div class="checklist" id="checklist"></div>
+    </div>
+  </div>
+
+  <button class="cta-btn big" id="renderBtn2">
+    <span class="cta-icon">⚡</span>
+    تصدير الفيديو النهائي
+  </button>
+  <div id="renderProgress2" class="render-progress hidden">
+    <div class="bar"><div class="bar-fill" id="renderBar2"></div></div>
+    <span id="renderStatus2">تجهيز...</span>
+  </div>
+  <a id="downloadLink2" class="download-link hidden" download="quran-reel.mp4">⬇ تحميل الفيديو</a>
+</section>
+
+<!-- Rating & Reviews -->
+<section class="panel">
+  <div class="panel-head">
+    <h3>ما رأيك في الأداة؟</h3>
+    <span class="panel-tip">ساعدنا على التحسين</span>
+  </div>
+  <div class="rating-row">
+    <div class="stars" id="stars">
+      <span data-v="1">★</span>
+      <span data-v="2">★</span>
+      <span data-v="3">★</span>
+      <span data-v="4">★</span>
+      <span data-v="5">★</span>
+    </div>
+    <div class="rating-stat">
+      <strong id="avgRating">4.8</strong>
+      <span class="muted small">من 320 تقييم</span>
+    </div>
+  </div>
+  <div class="field">
+    <label>تعليقك (اختياري)</label>
+    <textarea id="reviewText" rows="3" placeholder="اكتب رأيك هنا..."></textarea>
+  </div>
+  <button class="primary-btn" id="sendReviewBtn">إرسال التقييم</button>
+  <p class="muted small" id="reviewStatus"></p>
+</section>
+
+<!-- FAQ -->
+<section class="panel">
+  <div class="panel-head">
+    <h3>الأسئلة الشائعة</h3>
+  </div>
+  <div class="faq">
+    <details><summary>هل الأداة مجانية؟</summary><p>نعم، الأداة مجانية بالكامل. التلاوة من خوادم quran.com و everyayah.com المرخصة.</p></details>
+    <details><summary>هل الفيديو يطابق الصوت؟</summary><p>نعم، نقيس المدة الفعلية لكل آية من ملف الصوت ونخصص وقت ظهورها بنفس الطول.</p></details>
+    <details><summary>ما جودة الفيديو المُصدّر؟</summary><p>حتى 1080p HD بسرعة 30 أو 60 إطار/ثانية. الإطار 9:16 مهيّأ لمنصات الفيديو القصير.</p></details>
+    <details><summary>هل يدعم الرسم العثماني؟</summary><p>نعم، النصوص تأتي من رسم عثماني معتمد من quran.com API.</p></details>
+    <details><summary>هل يمكنني إضافة خلفيات خاصة بي؟</summary><p>نعم، يمكنك رفع صورة أو فيديو من جهازك كخلفية.</p></details>
+  </div>
+</section>
+
+<!-- =========== CONTACT =========== -->
+<section class="panel" id="contact">
+  <div class="panel-head">
+    <h3>📞 تواصل معي</h3>
+    <span class="panel-tip">أي استفسار أو اقتراح - يسعدني سماعك</span>
+  </div>
+  <div class="contact-grid">
+    <a href="tel:01018946503" class="contact-card">
+      <div class="contact-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">📱</div>
+      <div class="contact-info">
+        <strong>رقم الهاتف</strong>
+        <span>01018946503</span>
+      </div>
+    </a>
+    <a href="https://wa.me/201018946503" target="_blank" class="contact-card">
+      <div class="contact-icon" style="background:linear-gradient(135deg,#25D366,#128C7E)">💬</div>
+      <div class="contact-info">
+        <strong>واتساب</strong>
+        <span>تواصل مباشر</span>
+      </div>
+    </a>
+    <a href="mailto:mekohamada5@gmail.com" class="contact-card">
+      <div class="contact-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">✉️</div>
+      <div class="contact-info">
+        <strong>البريد الإلكتروني</strong>
+        <span>mekohamada5@gmail.com</span>
+      </div>
+    </a>
+  </div>
+  <div class="social-row">
+    <a href="https://www.facebook.com/sharer/sharer.php?u=" target="_blank" class="social-btn" title="Facebook">f</a>
+    <a href="https://twitter.com/intent/tweet?text=" target="_blank" class="social-btn" title="X / Twitter">𝕏</a>
+    <a href="https://t.me/share/url?url=" target="_blank" class="social-btn" title="Telegram">✈</a>
+  </div>
+</section>
+
+<footer class="footer">
+  <p>صُنع بحب لخدمة كتاب الله · Quran Reel Maker 2026</p>
+  <p>Created by <strong>Ahmed Wael</strong></p>
+  <p class="muted small">المصادر: <a href="https://quran.com" target="_blank">quran.com</a> · <a href="https://everyayah.com" target="_blank">everyayah.com</a> · <a href="https://aladhan.com" target="_blank">aladhan.com</a></p>
+</footer>
+
+<button id="scrollTop" class="scroll-top hidden" title="للأعلى">↑</button>
+
+<div id="toast" class="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
